@@ -1,0 +1,48 @@
+name: Daily Stock Heat
+
+on:
+  schedule:
+    # 09:17 Asia/Shanghai. GitHub schedules are evaluated in UTC.
+    - cron: "17 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-stock-heat
+  cancel-in-progress: false
+
+jobs:
+  collect-report-notify:
+    runs-on: ubuntu-latest
+    env:
+      FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+      FEISHU_SECRET: ${{ secrets.FEISHU_SECRET }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Collect ApeWisdom data
+        run: python -m app.cli collect --filter all-stocks --pages 1
+
+      - name: Generate report and send Feishu message
+        run: python -m app.cli report --filter all-stocks
+
+      - name: Commit updated data and reports
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f data/stocks_heat.db reports/*.md
+          if git diff --cached --quiet; then
+            echo "No data or report changes to commit."
+          else
+            git commit -m "Update stock heat data"
+            git push
+          fi

@@ -1,0 +1,8 @@
+default_filter = "all-stocks"
+default_pages = 1
+database_path = "data/stocks_heat.db"
+reports_dir = "reports"
+alert_mentions_growth_pct = 100
+scheduler_interval_hours = 24
+feishu_webhook_url = ""
+feishu_secret = ""
