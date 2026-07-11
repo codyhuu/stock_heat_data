@@ -4,6 +4,8 @@ on:
   schedule:
     # 09:17 Asia/Shanghai. GitHub schedules are evaluated in UTC.
     - cron: "17 1 * * *"
+    # Backup run at 10:17 Asia/Shanghai in case the first scheduled run is delayed or missed.
+    - cron: "17 2 * * *"
   workflow_dispatch:
 
 permissions:
@@ -29,11 +31,18 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Collect ApeWisdom data
-        run: python -m app.cli collect --filter all-stocks --pages 1
+      - name: Collect, report, and send Feishu message
+        run: |
+          report_date="$(TZ=Asia/Shanghai date +%F)"
+          report_file="reports/daily_heat_all-stocks_${report_date}.md"
 
-      - name: Generate report and send Feishu message
-        run: python -m app.cli report --filter all-stocks
+          if [ "${{ github.event_name }}" = "schedule" ] && [ -f "$report_file" ]; then
+            echo "$report_file already exists. Skipping scheduled duplicate run."
+            exit 0
+          fi
+
+          python -m app.cli collect --filter all-stocks --pages 1
+          python -m app.cli report --filter all-stocks
 
       - name: Commit updated data and reports
         run: |

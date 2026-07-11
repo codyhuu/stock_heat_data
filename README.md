@@ -59,7 +59,7 @@ python -m app.cli run-scheduler
 .github/workflows/daily-stock-heat.yml
 ```
 
-默认每天北京时间 `09:17` 自动运行一次。流程会：
+默认每天北京时间 `09:17` 自动运行一次，并在 `10:17` 增加一次备用触发。备用触发会先检查当天报告是否已经存在，存在就跳过，避免重复采集。流程会：
 
 - 抓取 ApeWisdom `all-stocks` Top 100
 - 更新 `data/stocks_heat.db`
