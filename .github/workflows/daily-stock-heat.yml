@@ -4,8 +4,11 @@ on:
   schedule:
     # 09:17 Asia/Shanghai. GitHub schedules are evaluated in UTC.
     - cron: "17 1 * * *"
-    # Backup run at 10:17 Asia/Shanghai in case the first scheduled run is delayed or missed.
+    # Backup runs in case GitHub delays or drops a scheduled run.
+    - cron: "47 1 * * *"
     - cron: "17 2 * * *"
+    - cron: "47 2 * * *"
+    - cron: "17 3 * * *"
   workflow_dispatch:
 
 permissions:
